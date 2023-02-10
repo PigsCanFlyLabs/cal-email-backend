@@ -131,6 +131,10 @@ class UserCalendar(models.Model):
         null=False)
     internal_calendar_id = models.AutoField(primary_key=True)
     google_account = models.ForeignKey(GoogleAccount, on_delete=models.CASCADE, null=False)
+    cal_uuid = models.UUIDField(
+         primary_key = False,
+         default = uuid.uuid4,
+         editable = False)
     google_calendar_id = models.CharField(max_length=500, null=False)
     name = models.CharField(max_length=500, null=True, blank=True)
     last_error = models.DateTimeField(null=True)
@@ -174,6 +178,10 @@ class UserCalendar(models.Model):
             eventId=event["id"],
             body=event,
             sendUpdates="none").execute()
+
+    def handle_sync_event(self):
+        changes = self.get_changes()
+        map(handle_event, changes)
 
     def get_changes(self):
         """Get the event changes since the last sync. This _may_ return all calendar events.
