@@ -2,6 +2,7 @@
 
 set -ex
 
+kubectl apply -f raycluster.yaml
 kubectl apply -f service.yaml
 kubectl apply -f podsa.yaml
 

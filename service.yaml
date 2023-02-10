@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: google-api-svc
+  namespace: pcfweb
+spec:
+  selector:
+    ray-cluster-name: pcfweb
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
+  sessionAffinity: None
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: google-api-ingress
+  namespace: pcfweb
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    cert-manager.io/issue-temporary-certificate: "true"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - google-api.pigscanfly.ca
+    secretName: google-api-tls-secret
+  rules:
+    - host: "google-api.pigscanfly.ca"
+      http:
+        paths:
+        - pathType: Prefix
+          path: "/"
+          backend:
+            service:
+              name: google-api-svc
+              port:
+                number: 80
