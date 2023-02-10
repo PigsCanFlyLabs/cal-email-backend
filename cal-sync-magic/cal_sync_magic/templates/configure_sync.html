@@ -1,0 +1,142 @@
+{% extends 'external-base.html' %}
+{% load static %}
+
+{% block content %}
+
+<p>
+Current accounts:
+</p>
+<table>
+{% for acc in google_accounts %}
+<tr>
+  <td>
+    {{ acc.google_user_email }}
+  </td>
+  <td>
+    {{ acc.get_friendly_scopes }}
+  </td>
+  <td>
+    <form action="{% url 'update-gaccount-settings' %}" method="post" novalidate="novalidate">
+      {% csrf_token %}
+      {{ acc.get_config_form.as_div }}
+      <!--
+      <input name="account_id" value="{{acc.account_id}}" type="hidden">
+      <p><input type="checkbox" name="calendar_sync_enabled" {% if acc.calendar_sync_enabled %} checked {% endif %} > <label>Calendar Sync</label></p>
+      <p><input type="checkbox" name="second_chance_email" {% if acc.second_chance_email %} checked {% endif %}> <label>2nd chance spam filter</label></p>
+      <p><input type="checkbox" name="delete_events_from_email" {% if acc.delete_events_from_email %} checked {% endif %}> <label>E-mail Event Cleanup</label></p> -->
+      <input type="submit" value="Update">
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</table>
+<p>
+  Add <a href="{% url 'google-authorize' %}?scopes={{ 'cal_scopes' |urlencode }}">an account</a>
+</p>
+
+<p>
+  Add <a href="{% url 'google-authorize' %}?scopes={{ 'cal_scopes,base_email_scopes' |urlencode }}">an account w/just enough e-mail for 2nd chance e-mail + flight cancelations</a>
+</p>
+<p>
+  Add <a href="{% url 'google-authorize' %}?scopes={{ 'cal_scopes,base_email_scopes,read_email_scopes' | urlencode }}">an account more email (enough to get rid of those best buy phishing e-mails & do a better job processing reservation e-mails)</a>
+</p>
+
+Want to <a href="https://myaccount.google.com/permissions">revoke an account?</a>
+
+<p>
+  Current calendars:
+</p>
+<table style="border: 1px solid; width: 100%;">
+  <tr>
+    <th>Google User</th>
+    <th>Calendar Name</th>
+    <th>Calendar ID</th>
+  </tr>
+{% for cal in calendars %}
+  <tr>
+    <th>{{ cal.google_account.google_user_email }}</th>
+    <th>{{ cal.name }}</th>
+    <th>{{ cal.google_calendar_id }}</th>
+<!--    <th><a href="{% url 'view-calendar-raw-events' internal_id=cal.internal_calendar_id %}">{{ cal.google_calendar_id }}</a></th> -->
+  </tr>
+{% endfor %}
+</table>
+Missing a new calendar: <a href="{% url 'update-user-calendars' %}">Update calendars</a><br/>
+<p>
+  Current syncs:
+</p>
+<table style="border: 1px solid; width: 100%;">
+  <tr>
+    <th>
+      Sync
+    </th>
+    <th>
+      Action
+    </th>
+  </tr>
+  {% for sync in syncs %}
+  <tr>
+    <th>
+      {{ sync }}
+    </th>
+    <th>
+      <form action="{% url 'del-sync' %}" method="post" novalidate="novalidate">
+	{% csrf_token %}
+	<input type="hidden" name="id" value="{{ sync.id }}">
+	<input type="submit" value="Remove">
+      </form>
+    </th>
+  </tr>
+  {% endfor %}
+</table>
+
+<p>
+  Add a sync:
+</p>
+<p>
+  <form action="{% url 'add-sync' %}" method="post" novalidate="novalidate">
+    {% csrf_token %}
+    {{ add_sync_form.as_div }}
+      <input type="submit" value="Add new sync">
+  </form>
+</p>
+
+
+<p>
+  Current rules:
+</p>
+<table style="border: 1px solid; width: 100%;">
+  <tr>
+    <th>
+      Rule
+    </th>
+    <th>
+      Action
+    </th>
+  </tr>
+  {% for rule in rules %}
+  <tr>
+    <th>
+      {{ rule }}
+    </th>
+    <th>
+      <form action="{% url 'del-rule' %}" method="post" novalidate="novalidate">
+	<input type="hidden" name="id" value="{{ rule.id }}">
+	<input type="submit" value="Remove">
+      </form>
+    </th>
+  </tr>
+  {% endfor %}
+</table>
+<p>
+  Add a rule:
+</p>
+<p>
+  <form action="{% url 'add-cal-rule' %}" method="post" novalidate="novalidate">
+    {% csrf_token %}
+    {{ add_cal_rule_form.as_div }}
+      <input type="submit" value="Add new sync">
+  </form>
+</p>
+
+{% endblock content %}
